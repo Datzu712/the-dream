@@ -5,7 +5,6 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { MainNav } from '@/components/main-nav';
 import { DashboardNav } from '@/components/dashboard-nav';
-import { SiteFooter } from '@/components/site-footer';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -57,7 +56,7 @@ export default function DashboardLayout({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute -right-3 top-6 z-40 flex h-6 w-6 items-center justify-center rounded-full border bg-background shadow-sm"
+                        className="absolute -right-4 bottom-16 z-40 flex h-8 w-8 items-center justify-center rounded-full border bg-background shadow-sm"
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                     >
                         {sidebarCollapsed ? (
