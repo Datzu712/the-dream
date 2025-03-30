@@ -11,7 +11,7 @@ export default function CabinsPage() {
         <DashboardShell>
             <DashboardHeader
                 heading="Cabañas"
-                description="Administre sus cabañas disponibles para alquiler."
+                description="Administre sus cabañas disponibles"
             >
                 <Button asChild>
                     <Link href="/dashboard/cabins/new">

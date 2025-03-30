@@ -45,8 +45,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import Image from 'next/image';
+import { useGetCabins } from '@/hooks/api/cabin/useGetCabins';
 
 export function CabinTable() {
+    const { data } = useGetCabins();
+
     const [cabins, setCabins] = useState(cabinData);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [cabinToDelete, setCabinToDelete] = useState<string | null>(null);

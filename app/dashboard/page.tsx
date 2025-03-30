@@ -20,7 +20,7 @@ export default function DashboardPage() {
         <DashboardShell>
             <DashboardHeader
                 heading="Panel de Control"
-                description="Resumen general."
+                description="Resumen general del mes actual."
             />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>

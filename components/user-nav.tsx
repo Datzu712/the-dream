@@ -16,8 +16,15 @@ import {
     faRightFromBracket,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '@/contexts/auth-context';
 
 export function UserNav() {
+    const { user, logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -27,7 +34,9 @@ export function UserNav() {
                 >
                     <Avatar className="h-8 w-8">
                         <AvatarImage src="/placeholder.svg" alt="Avatar" />
-                        <AvatarFallback>AM</AvatarFallback>
+                        <AvatarFallback>
+                            {user?.name?.substring(0, 2).toUpperCase() || 'UN'}
+                        </AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
@@ -35,10 +44,10 @@ export function UserNav() {
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                            Admin
+                            {user?.name || 'Usuario'}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            admin@cabanas.com
+                            {user?.email || 'usuario@ejemplo.com'}
                         </p>
                     </div>
                 </DropdownMenuLabel>
@@ -52,7 +61,7 @@ export function UserNav() {
                     Configuración
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                     <FontAwesomeIcon
                         icon={faRightFromBracket}
                         className="mr-2 h-4 w-4"

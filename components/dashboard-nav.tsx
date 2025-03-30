@@ -22,36 +22,43 @@ interface DashboardNavProps {
     collapsed?: boolean;
 }
 
+const navItems = [
+    {
+        href: '/dashboard',
+        icon: faHome,
+        label: 'Panel',
+    },
+    {
+        href: '/dashboard/cabins',
+        icon: faHouseChimney,
+        label: 'Cabañas',
+    },
+    {
+        href: '/dashboard/bookings',
+        icon: faCalendarDays,
+        label: 'Reservas',
+    },
+    {
+        href: '/dashboard/customers',
+        icon: faUsers,
+        label: 'Clientes',
+    },
+    {
+        href: '/dashboard/settings',
+        icon: faGear,
+        label: 'Configuración',
+    },
+];
+
 export function DashboardNav({ collapsed = false }: DashboardNavProps) {
     const pathname = usePathname();
 
-    const navItems = [
-        {
-            href: '/dashboard',
-            icon: faHome,
-            label: 'Panel',
-        },
-        {
-            href: '/dashboard/cabins',
-            icon: faHouseChimney,
-            label: 'Cabañas',
-        },
-        {
-            href: '/dashboard/bookings',
-            icon: faCalendarDays,
-            label: 'Reservas',
-        },
-        {
-            href: '/dashboard/customers',
-            icon: faUsers,
-            label: 'Clientes',
-        },
-        {
-            href: '/dashboard/settings',
-            icon: faGear,
-            label: 'Configuración',
-        },
-    ];
+    const isActive = (href: string) => {
+        if (href === '/dashboard') {
+            return pathname === href;
+        }
+        return pathname === href || pathname?.startsWith(href + '/');
+    };
 
     if (collapsed) {
         return (
@@ -63,8 +70,7 @@ export function DashboardNav({ collapsed = false }: DashboardNavProps) {
                                 <Link href={item.href}>
                                     <Button
                                         variant={
-                                            pathname === item.href ||
-                                            pathname?.startsWith(item.href)
+                                            isActive(item.href)
                                                 ? 'default'
                                                 : 'ghost'
                                         }
@@ -98,12 +104,7 @@ export function DashboardNav({ collapsed = false }: DashboardNavProps) {
             {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
                     <Button
-                        variant={
-                            pathname === item.href ||
-                            pathname?.startsWith(item.href)
-                                ? 'default'
-                                : 'ghost'
-                        }
+                        variant={isActive(item.href) ? 'default' : 'ghost'}
                         className="w-full justify-start"
                     >
                         <FontAwesomeIcon
