@@ -512,8 +512,7 @@ const cabinData = [
         description: 'Hermosa cabaña rodeada de pinos con vista panorámica.',
         amenities: ['Chimenea', 'Jacuzzi', 'WiFi', 'Cocina equipada'],
         images: [
-            '/placeholder.svg?height=200&width=200',
-            '/placeholder.svg?height=200&width=200',
+            'https://res.cloudinary.com/doygm82bu/image/upload/v1743735537/cabana1_p4bkc9.jpg',
         ],
     },
     {

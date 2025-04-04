@@ -242,21 +242,20 @@ export function CabinTable() {
 const cabinData = [
     {
         id: '1',
-        name: 'Cabaña Pino',
+        name: 'Cabaña Principal',
         capacity: 4,
         price: 120,
         status: 'Disponible',
-        location: 'Zona Norte',
+        location: 'Heredia',
         description: 'Hermosa cabaña rodeada de pinos con vista panorámica.',
         amenities: ['Chimenea', 'Jacuzzi', 'WiFi', 'Cocina equipada'],
         images: [
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
+            'https://res.cloudinary.com/doygm82bu/image/upload/v1743735537/cabana1_p4bkc9.jpg',
         ],
     },
     {
         id: '2',
-        name: 'Cabaña Lago',
+        name: 'Domo',
         capacity: 6,
         price: 180,
         status: 'Disponible',
