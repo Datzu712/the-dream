@@ -46,11 +46,16 @@ import {
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { useGetCabins } from '@/hooks/api/cabin/useGetCabins';
+import { useDeleteCabin } from '@/hooks/api/cabin/useDeleteCabin';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { Cabin } from '@/types/models';
 
 export function CabinTable() {
-    const { data } = useGetCabins();
+    const { data: cabins, isLoading, error, refetch } = useGetCabins();
+    const { mutate: deleteCabin, isPending: isDeleting } = useDeleteCabin();
+    const { toast } = useToast();
 
-    const [cabins, setCabins] = useState(cabinData);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [cabinToDelete, setCabinToDelete] = useState<string | null>(null);
     const [openImagesDialog, setOpenImagesDialog] = useState(false);
@@ -65,9 +70,25 @@ export function CabinTable() {
 
     const confirmDelete = () => {
         if (cabinToDelete) {
-            setCabins(cabins.filter((cabin) => cabin.id !== cabinToDelete));
-            setOpenDeleteDialog(false);
-            setCabinToDelete(null);
+            deleteCabin(cabinToDelete, {
+                onSuccess: () => {
+                    toast({
+                        title: 'Cabaña eliminada',
+                        description:
+                            'La cabaña ha sido eliminada exitosamente.',
+                    });
+                    setOpenDeleteDialog(false);
+                    setCabinToDelete(null);
+                    refetch();
+                },
+                onError: (error) => {
+                    toast({
+                        title: 'Error',
+                        description: 'No se pudo eliminar la cabaña.',
+                        variant: 'destructive',
+                    });
+                },
+            });
         }
     };
 
@@ -75,6 +96,33 @@ export function CabinTable() {
         setSelectedCabinImages(images);
         setOpenImagesDialog(true);
     };
+
+    // Estado de carga
+    if (isLoading) {
+        return (
+            <div className="rounded-md border">
+                <div className="p-4">
+                    <Skeleton className="h-8 w-64 mb-4" />
+                    <div className="space-y-2">
+                        {[1, 2, 3, 4].map((i) => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Estado de error
+    if (error) {
+        return (
+            <div className="rounded-md border p-4">
+                <div className="text-red-500">
+                    Error al cargar las cabañas. Por favor, intente nuevamente.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -94,93 +142,105 @@ export function CabinTable() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {cabins.map((cabin) => (
-                            <TableRow key={cabin.id}>
-                                <TableCell className="font-medium">
-                                    {cabin.name}
-                                </TableCell>
-                                <TableCell>{cabin.capacity} personas</TableCell>
-                                <TableCell>${cabin.price}/noche</TableCell>
-                                <TableCell>
-                                    <Badge
-                                        variant={
-                                            cabin.status === 'Disponible'
-                                                ? 'default'
-                                                : 'secondary'
-                                        }
-                                    >
-                                        {cabin.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>{cabin.location}</TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            viewImages(cabin.images || [])
-                                        }
-                                        disabled={
-                                            !cabin.images ||
-                                            cabin.images.length === 0
-                                        }
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faImage}
-                                            className="mr-2 h-4 w-4"
-                                        />
-                                        {cabin.images ? cabin.images.length : 0}
-                                    </Button>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0"
-                                            >
-                                                <span className="sr-only">
-                                                    Abrir menú
-                                                </span>
-                                                <FontAwesomeIcon
-                                                    icon={faEllipsisH}
-                                                    className="h-4 w-4"
-                                                />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>
-                                                Acciones
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem asChild>
-                                                <Link
-                                                    href={`/dashboard/cabins/${cabin.id}`}
+                        {cabins &&
+                            cabins.map((cabin: Cabin) => (
+                                <TableRow key={cabin.id}>
+                                    <TableCell className="font-medium">
+                                        {cabin.name}
+                                    </TableCell>
+                                    <TableCell>
+                                        {cabin.capacity} personas
+                                    </TableCell>
+                                    <TableCell>${cabin.price}/noche</TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                cabin.status === 'Disponible'
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {cabin.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>{cabin.location}</TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                viewImages(
+                                                    cabin.images?.map(
+                                                        (img) => img.imageUrl,
+                                                    ) || [],
+                                                )
+                                            }
+                                            disabled={
+                                                !cabin.images ||
+                                                cabin.images.length === 0
+                                            }
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faImage}
+                                                className="mr-2 h-4 w-4"
+                                            />
+                                            {cabin.images
+                                                ? cabin.images.length
+                                                : 0}
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="h-8 w-8 p-0"
+                                                >
+                                                    <span className="sr-only">
+                                                        Abrir menú
+                                                    </span>
+                                                    <FontAwesomeIcon
+                                                        icon={faEllipsisH}
+                                                        className="h-4 w-4"
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>
+                                                    Acciones
+                                                </DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem asChild>
+                                                    <Link
+                                                        href={`/dashboard/cabins/${cabin.id}`}
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faEdit}
+                                                            className="mr-2 h-4 w-4"
+                                                        />
+                                                        Editar
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="text-destructive focus:text-destructive"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            cabin.id.toString(),
+                                                        )
+                                                    }
+                                                    disabled={isDeleting}
                                                 >
                                                     <FontAwesomeIcon
-                                                        icon={faEdit}
+                                                        icon={faTrash}
                                                         className="mr-2 h-4 w-4"
                                                     />
-                                                    Editar
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="text-destructive focus:text-destructive"
-                                                onClick={() =>
-                                                    handleDelete(cabin.id)
-                                                }
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faTrash}
-                                                    className="mr-2 h-4 w-4"
-                                                />
-                                                Eliminar
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                                                    Eliminar
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
             </div>
@@ -218,17 +278,16 @@ export function CabinTable() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {selectedCabinImages.map((image, index) => (
+                        {selectedCabinImages.map((src, index) => (
                             <div
                                 key={index}
-                                className="aspect-video rounded-md overflow-hidden border"
+                                className="relative aspect-video rounded-md overflow-hidden"
                             >
                                 <Image
-                                    src={image || '/placeholder.svg'}
-                                    alt={`Imagen de cabaña ${index + 1}`}
-                                    width={400}
-                                    height={300}
-                                    className="w-full h-full object-cover"
+                                    src={src}
+                                    alt={`Imagen ${index + 1}`}
+                                    fill
+                                    className="object-cover"
                                 />
                             </div>
                         ))}
@@ -238,81 +297,3 @@ export function CabinTable() {
         </>
     );
 }
-
-const cabinData = [
-    {
-        id: '1',
-        name: 'Cabaña Principal',
-        capacity: 4,
-        price: 120,
-        status: 'Disponible',
-        location: 'Heredia',
-        description: 'Hermosa cabaña rodeada de pinos con vista panorámica.',
-        amenities: ['Chimenea', 'Jacuzzi', 'WiFi', 'Cocina equipada'],
-        images: [
-            'https://res.cloudinary.com/doygm82bu/image/upload/v1743735537/cabana1_p4bkc9.jpg',
-        ],
-    },
-    {
-        id: '2',
-        name: 'Domo',
-        capacity: 6,
-        price: 180,
-        status: 'Disponible',
-        location: 'Zona Lago',
-        description: 'Cabaña a orillas del lago con acceso directo al agua.',
-        amenities: ['Muelle privado', 'Bote', 'Terraza', 'Parrilla'],
-        images: [
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-        ],
-    },
-    {
-        id: '3',
-        name: 'Cabaña Montaña',
-        capacity: 8,
-        price: 220,
-        status: 'Ocupada',
-        location: 'Zona Alta',
-        description:
-            'Amplia cabaña en lo alto de la montaña con vistas espectaculares.',
-        amenities: [
-            'Sauna',
-            'Sala de juegos',
-            'Terraza panorámica',
-            'Estacionamiento',
-        ],
-        images: ['/placeholder.svg?height=400&width=600'],
-    },
-    {
-        id: '4',
-        name: 'Cabaña Bosque',
-        capacity: 2,
-        price: 90,
-        status: 'Mantenimiento',
-        location: 'Zona Bosque',
-        description: 'Acogedora cabaña para parejas en medio del bosque.',
-        amenities: ['Chimenea', 'Bañera', 'Desayuno incluido', 'Senderos'],
-        images: [
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-        ],
-    },
-    {
-        id: '5',
-        name: 'Cabaña Río',
-        capacity: 5,
-        price: 150,
-        status: 'Disponible',
-        location: 'Zona Río',
-        description: 'Cabaña junto al río con sonidos naturales del agua.',
-        amenities: ['Pesca', 'Hamacas', 'Fogata', 'Cocina exterior'],
-        images: [
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-            '/placeholder.svg?height=400&width=600',
-        ],
-    },
-];

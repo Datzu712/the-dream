@@ -1,13 +1,15 @@
 import { useAuth } from '@/contexts/auth-context';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { Amenity } from '@/types/models';
 
-export function useGetAmenities() {
+export function useGetAmenities<T = Amenity[]>() {
     const { apiRequest } = useAuth();
 
-    return useQuery({
+    return useQuery<T>({
         queryKey: ['amenities'],
         queryFn: () => apiRequest('/amenity'),
-        placeholderData: keepPreviousData,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 10, // 10 minutos (más tiempo ya que las amenidades cambian con poca frecuencia)
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 }

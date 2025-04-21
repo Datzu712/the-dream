@@ -31,7 +31,7 @@ interface AuthContextType {
         password: string,
     ) => Promise<{ success: boolean; message?: string }>;
     logout: () => Promise<void>;
-    apiRequest: (url: string, options?: RequestInit) => Promise<Response>;
+    apiRequest: <K>(url: string, options?: RequestInit) => Promise<K>;
 }
 
 const publicRoutes = ['/login', '/signup'];
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const apiRequest = useCallback(
-        async (url: string, options?: RequestInit) => {
+        async <K = any,>(url: string, options?: RequestInit) => {
             const response = await fetch(`${API_URL}${url}`, {
                 credentials: 'include',
                 ...options,
@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     cause: response,
                 });
             }
-            return await response.json();
+            return (await response.json()) as K;
         },
         [],
     );
